@@ -1,0 +1,6 @@
+package supervisor
+
+
+func NewManager() {
+
+}
