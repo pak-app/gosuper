@@ -32,11 +32,11 @@ func StartServer(socketPath string) {
 	// 3. Define your HTTP routes
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/status", statusController)
 	mux.HandleFunc("/daemon/stop", daemonStopController)
 	mux.HandleFunc("/daemon/status", daemonStatusController)
-	// mux.HandleFunc("/stop", stopController)
-	// mux.HandleFunc("/start", startController)
+	mux.HandleFunc("/service/start", serviceStartController)
+	mux.HandleFunc("/service/status", serviceStatusController)
+	// mux.HandleFunc("/services/stop", )
 	// mux.HandleFunc("/log", logController)
 
 	// 4. Serve HTTP over the Unix listener
