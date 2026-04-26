@@ -5,9 +5,10 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
+	"log"
 	"os/exec"
 	"syscall"
+	"github.com/spf13/cobra"
 )
 
 // daemonStartCmd represents the daemonStart command
@@ -21,7 +22,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Starting Gosuper Daemon...")
+		log.Println("Starting Gosuper Daemon...")
 
 		exePath := "./gosuper"
 		// Create a command that runs the hidden "serve" subcommand
@@ -34,11 +35,12 @@ to quickly create a Cobra application.`,
 
 		// Start the command but do NOT wait for it to finish
 		if err := bgCmd.Start(); err != nil {
+			log.Println("failed to start daemon")
 			err = fmt.Errorf("failed to start daemon: %w", err)
 			return
 		}
 
-		fmt.Printf("Daemon started successfully in background (PID: %d)\n", bgCmd.Process.Pid)
+		log.Printf("Daemon started successfully in background (PID: %d)\n", bgCmd.Process.Pid)
 	},
 }
 
