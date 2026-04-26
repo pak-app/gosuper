@@ -20,7 +20,7 @@ func Init(logFilePath string) error {
 	defer mu.Unlock()
 
 	if initialized {
-		return nil // Already initialized
+		return nil
 	}
 
 	originalOutput = log.Writer()
@@ -39,7 +39,13 @@ func Init(logFilePath string) error {
 	}
 
 	logFile = file
-	log.SetOutput(file)
+	
+	// Create a MultiWriter to write to both the terminal (os.Stdout or os.Stderr) and the file
+	multiWriter := io.MultiWriter(os.Stdout, file)
+	
+	// Set the standard logger to use the MultiWriter
+	log.SetOutput(multiWriter)
+	
 	initialized = true
 
 	return nil
@@ -60,7 +66,7 @@ func Close() {
         logFile.Close()
         logFile = nil
     }
-    
+
     log.SetOutput(originalOutput)
     initialized = false
 }

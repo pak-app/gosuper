@@ -40,7 +40,7 @@ func daemonStopController(w http.ResponseWriter, r *http.Request) {
 
 func daemonStatusController(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"status": "alive"}`))
+	w.Write([]byte(`{"status": "alive", "up_time": 1888, "start_date": "2025-12-12 12:00:00"}`))
 }
 
 // /status route
