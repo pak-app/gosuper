@@ -1,9 +1,12 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
+	"fmt"
+	"github.com/pak-app/gosuper/internal/config"
+	"github.com/pak-app/gosuper/internal/types"
 	"log"
 	"net"
 	"net/http"
@@ -25,8 +28,7 @@ type Daemon struct {
 func New(socketPath string) (*Client, error) {
 
 	if socketPath == "" {
-		log.Printf("Socket path doesn't provided for client side")
-		return nil, errors.New("Socket path doesn't provided or exist")
+		return nil, fmt.Errorf("Socket path doesn't provided or exist")
 	}
 
 	return &Client{
@@ -55,7 +57,7 @@ func (c *Client) SartDaemonRequest() error {
 	res, err := c.httpClient.Do(req)
 
 	if res.StatusCode != http.StatusOK {
-		return errors.New("failed to start daemon")
+		return fmt.Errorf("failed to start daemon")
 	}
 	defer res.Body.Close()
 
@@ -73,7 +75,7 @@ func (c *Client) StopDaemonRequest() error {
 	res, err := c.httpClient.Do(req)
 
 	if res.StatusCode != http.StatusOK {
-		return errors.New("failed to stop daemon")
+		return fmt.Errorf("failed to stop daemon")
 	}
 	defer res.Body.Close()
 
@@ -91,18 +93,50 @@ func (c *Client) DaemonStatusRequest() (*Daemon, error) {
 	res, err := c.httpClient.Do(req)
 
 	if res.StatusCode != http.StatusOK {
-		return nil, errors.New("daemon is dead")
+		return nil, fmt.Errorf("daemon is dead")
 	}
 	defer res.Body.Close()
 
 	var result Daemon
 
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
-		log.Println("failed to get status of daemon")
-		return nil, errors.New("daemon is dead")
+		return nil, fmt.Errorf("daemon is dead")
 	}
 
 	log.Printf("Daemon status %v and it started from %v.\nUp Time: %v", result.Status, result.StartDate, result.UpTime)
 
 	return &result, nil
+}
+
+func (c *Client) ServiceStartRequest(serviceConfig *config.Config) error {
+
+	jsonData, err := json.Marshal(serviceConfig)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/service/start", bytes.NewBuffer(jsonData))
+
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := c.httpClient.Do(req)
+
+	var responseData types.SimpleResponse
+
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to start service/services: %v", res.StatusCode)
+	}
+
+	if err := json.NewDecoder(res.Body).Decode(&responseData); err != nil {
+		return fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	log.Printf("service started successfully: %s", responseData.Message)
+	defer res.Body.Close()
+
+	return nil
 }
