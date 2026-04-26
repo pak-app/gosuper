@@ -5,9 +5,11 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/pak-app/gosuper/internal/config"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var AppConfig *config.Config
@@ -35,6 +37,7 @@ to quickly create a Cobra application.`,
 
 		c, err := config.LoadConfig(cfgFilePath)
 		if err != nil {
+			log.Println("config file is not available")
 			return fmt.Errorf("failed to load config: %w", err)
 		}
 
