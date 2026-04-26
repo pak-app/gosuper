@@ -44,16 +44,16 @@ func daemonStatusController(w http.ResponseWriter, r *http.Request) {
 }
 
 // /status route
-func statusController(w http.ResponseWriter, r *http.Request) {
+func serviceStatusController(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{"status": "running", "services": 2}`))
 }
 
-// // /start route
-// func startController(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.Write([]byte(`{"start": "running", "services": 2}`))
-// }
+// /services/start route
+func serviceStartController(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(`{"start": "running", "services": 2}`))
+}
 
 // // /stop route
 // func stopController(w http.ResponseWriter, r *http.Request) {
