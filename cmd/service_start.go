@@ -24,14 +24,14 @@ to quickly create a Cobra application.`,
 		c, err := client.New("tmp/gosuper.sock")
 
 		if err != nil {
-			log.Panicln(err)
+			log.Println(err)
 			return
 		}
 
 		err = c.ServiceStartRequest(AppConfig)
 
 		if err != nil {
-			log.Panicln(err)
+			log.Println(err)
 		}
 	},
 }
