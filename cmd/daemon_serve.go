@@ -7,7 +7,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/pak-app/gosuper/internal/api"
+	"github.com/pak-app/gosuper/internal/server"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +24,7 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Gosuper daemon is serving...")
 		
-		api.StartServer("tmp/gosuper.sock")
+		server.StartServer("tmp/gosuper.sock")
 
 	},
 }
