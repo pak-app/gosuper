@@ -1,6 +1,0 @@
-package supervisor
-
-
-func NewManager() {
-
-}
