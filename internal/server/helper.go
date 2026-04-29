@@ -22,4 +22,6 @@ func setupSupervisor(cfg *config.Config) {
 	if err != nil {
 		log.Println("Error during running services: ", err)
 	}
+
+	daemonServer.Supervisors[cfg.Supervisor.Name] = supervisor
 }
