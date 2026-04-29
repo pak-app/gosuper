@@ -6,7 +6,7 @@ type Config struct {
 }
 
 type SupervisorConfig struct {
-	GroupName    string            `yaml:"group_name"`
+	Name    string            `yaml:"group_name"`
 	LogDir       string            `yaml:"log_dir"`
 	RestartDelay string            `yaml:"restart_delay"`
 	StopTimeout  string            `yaml:"stop_timeout"`

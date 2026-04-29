@@ -1,14 +1,28 @@
 package server
 
 import (
+	"github.com/pak-app/gosuper/internal/core"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"sync"
 )
+
+type DaemonServer struct {
+	mu          sync.RWMutex
+	Supervisors map[string]*core.Supervisor
+}
 
 var SocketPath string
 var Server *http.Server
+var daemonServer *DaemonServer
+
+func LoadSupervisors() {
+	daemonServer =  &DaemonServer{
+		Supervisors: make(map[string]*core.Supervisor),
+	}
+}
 
 func StartServer(socketPath string) {
 	if socketPath == "" {
@@ -36,7 +50,7 @@ func StartServer(socketPath string) {
 	mux.HandleFunc("/daemon/status", daemonStatusController)
 	mux.HandleFunc("/service/start", serviceStartController)
 	mux.HandleFunc("/service/status", serviceStatusController)
-	// mux.HandleFunc("/services/stop", )
+	mux.HandleFunc("/services/stop", serviceStopController)
 	// mux.HandleFunc("/log", logController)
 
 	// 4. Serve HTTP over the Unix listener

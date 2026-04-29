@@ -1,14 +1,15 @@
 package core
 
 import (
-	"sync"
 	"github.com/pak-app/gosuper/internal/config"
+	"sync"
 )
 
 type Supervisor struct {
 	Services         map[string]*Service
 	SupervisorConfig *config.SupervisorConfig
 	mu               sync.RWMutex
+	Name             string
 }
 
 func NewSupervisor() *Supervisor {
@@ -20,6 +21,7 @@ func NewSupervisor() *Supervisor {
 func (sup *Supervisor) LoadServices(cfg *config.Config) {
 
 	sup.SupervisorConfig = &cfg.Supervisor
+	sup.Name = cfg.Supervisor.Name
 
 	// Add programs
 	for name, serviceCfg := range cfg.Services {
@@ -27,11 +29,16 @@ func (sup *Supervisor) LoadServices(cfg *config.Config) {
 	}
 }
 
-func (sup *Supervisor) RunServices() {
+func (sup *Supervisor) RunServices() error {
 
 	for _, service := range sup.Services {
-		service.start()
+		err := service.start()
+
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func (sup *Supervisor) addService(name string, serviceCfg *config.ServiceConfig) {
@@ -42,7 +49,26 @@ func (sup *Supervisor) addService(name string, serviceCfg *config.ServiceConfig)
 	sup.Services[name] = &Service{
 		OriginalConfig: serviceCfg,
 		CurrentState:   Stopped,
-		Name: name,
-		stopSignal: make(chan struct{}, 1),
+		Name:           name,
+		stopSignal:     make(chan struct{}, 1),
 	}
+}
+
+// it waits to all goroutines end
+func (sup *Supervisor) StopAllServices() {
+
+	sup.mu.RLock()
+	defer sup.mu.RUnlock()
+
+	var wg sync.WaitGroup // ADDED
+
+	for _, service := range sup.Services {
+		wg.Add(1)             // ADDED
+		go func(s *Service) { // CHANGED (capture service as parameter)
+			defer wg.Done() // ADDED
+			s.stop()        // CHANGED (use parameter)
+		}(service) // CHANGED (pass service)
+	}
+
+	wg.Wait()
 }

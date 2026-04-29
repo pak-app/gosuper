@@ -10,6 +10,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 )
 
 // Client represents the gosuper API client
@@ -139,4 +140,26 @@ func (c *Client) ServiceStartRequest(serviceConfig *config.Config) error {
 	defer res.Body.Close()
 
 	return nil
+}
+
+func (c *Client) ServiceStopRequest(name string) error {
+    url := fmt.Sprintf("%s/service/stop?group_name=%s", c.baseURL, url.QueryEscape(name))
+    
+    req, err := http.NewRequest(http.MethodPost, url, nil)
+    if err != nil {
+        return err
+    }
+    
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    if err != nil {
+        return err
+    }
+    defer resp.Body.Close()
+    
+    if resp.StatusCode != http.StatusOK {
+        return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+    }
+
+    return nil
 }
