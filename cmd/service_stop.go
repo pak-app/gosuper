@@ -5,8 +5,8 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
-
+	"log"
+	"github.com/pak-app/gosuper/internal/client"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +21,29 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("stopService called")
+		c, err := client.New("tmp/gosuper.sock")
+
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		var name string
+
+		if AppConfig.Supervisor.Name != "" {
+			name = AppConfig.Supervisor.Name
+		} else if serviceName != "" {
+			name = serviceName
+		} else {
+			log.Println("Group name doesn't set for services")
+			return
+		}
+
+		err = c.ServiceStopRequest(name)
+
+		if err != nil {
+			log.Println(err)
+		}
 	},
 }
 
