@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -64,8 +65,7 @@ func serviceStartController(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Now you can use appConfig!
-	log.Println("Starting service:", appConfig)
+	setupSupervisor(&appConfig)
 
 	// 3. Send a success response back to the client
 	w.WriteHeader(http.StatusOK)
@@ -73,14 +73,24 @@ func serviceStartController(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// // /stop route
-// func stopController(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.Write([]byte(`{"stop": "running", "services": 2}`))
-// }
+// /stop route
+func serviceStopController(w http.ResponseWriter, r *http.Request) {
 
-// // /log route
-// func logController(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.Write([]byte(`{"log": "running", "services": 2}`))
-// }
+	responseBody := `{"message": "%s"}`
+	message := "Services stopped"
+
+	supervisorName := r.URL.Query().Get("supervisor_name")
+
+	if supervisorName == "" {
+		message = "supervisor name doesn't define in query body"
+	} else if _, ok := daemonServer.Supervisors[supervisorName]; !ok {
+		responseBody = fmt.Sprintf("supervisor with name %s doesn't exist", supervisorName)
+	} else {
+		supervisor := daemonServer.Supervisors[supervisorName]
+		supervisor.StopAllServices()
+		delete(daemonServer.Supervisors, supervisorName)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(fmt.Sprintf(responseBody, message)))
+}

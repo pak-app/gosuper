@@ -18,6 +18,7 @@ const (
 	Starting ServiceState = "Starting"
 	Failed   ServiceState = "Failed"
 	Fatal    ServiceState = "Fatal"
+	Stopping ServiceState = "Stopping"
 )
 
 type Service struct {
@@ -65,24 +66,42 @@ func (service *Service) start() error {
 	service.PID = cmd.Process.Pid
 	service.mu.Unlock()
 
-	service.monitor(cmd) // monitor service process
+	go service.monitor(cmd) // monitor service process
 
 	return nil
 }
 
-func (service *Service) stop() error {
+func (service *Service) stop() {
+	
+	service.mu.Lock()
+	defer service.mu.Unlock()
+	
+	if service.CurrentState != Running || service.Command == nil || service.Command.Process == nil {
+		return
+	}
 
-	// do stop suffs
-	return nil
+	service.CurrentState = Stopping
+
+	// Signal the monitor goroutine that this is intentional
+	select {
+	case service.stopSignal <- struct{}{}:
+	default:
+	}
+
+	// Kill the process
+	err := service.Command.Process.Kill()
+	if err != nil {
+		log.Printf("failed to kill service %s: %w\n", service.Name, err)
+	}
+
 }
 
-func (service *Service) monitor(cmd *exec.Cmd) error {
+func (service *Service) monitor(cmd *exec.Cmd) {
 
 	err := cmd.Wait()
 
 	if err != nil {
 		log.Panicln("Error in waiting goroutine: ", err)
-		return err
 	}
 
 	service.mu.Lock()
@@ -102,6 +121,4 @@ func (service *Service) monitor(cmd *exec.Cmd) error {
 
 		// TODO: Add auto-restart logic here
 	}
-
-	return nil
 }
