@@ -126,11 +126,16 @@ func (c *Client) ServiceStartRequest(serviceConfig *config.Config) error {
 
 	res, err := c.httpClient.Do(req)
 
-	var responseData types.SimpleResponse
+	if err != nil {
+		return fmt.Errorf("request failed: %w", err) // response is nil here, don't touch it
+	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to start service/services: %v", res.StatusCode)
 	}
+
+	var responseData types.SimpleResponse
 
 	if err := json.NewDecoder(res.Body).Decode(&responseData); err != nil {
 		return fmt.Errorf("failed to decode response: %w", err)
@@ -142,24 +147,42 @@ func (c *Client) ServiceStartRequest(serviceConfig *config.Config) error {
 	return nil
 }
 
-func (c *Client) ServiceStopRequest(name string) error {
-    url := fmt.Sprintf("%s/service/stop?group_name=%s", c.baseURL, url.QueryEscape(name))
-    
-    req, err := http.NewRequest(http.MethodPost, url, nil)
-    if err != nil {
-        return err
-    }
-    
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    if err != nil {
-        return err
-    }
-    defer resp.Body.Close()
-    
-    if resp.StatusCode != http.StatusOK {
-        return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-    }
+func (c *Client) ServiceStopRequest(supervisorName string) error {
+	// URL scheme doesn't matter for Unix socket, but we need a valid URL
+	// The hostname is ignored when using custom DialContext
+	url := &url.URL{
+		Scheme: "http",
+		Host:   "unix", // dummy host, won't be used
+		Path:   "/service/stop",
+	}
 
-    return nil
+	// Add query parameters
+	q := url.Query()
+	q.Set("supervisor_name", supervisorName)
+	url.RawQuery = q.Encode()
+
+	req, err := http.NewRequest(http.MethodPost, url.String(), nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+	
+	var responseData types.SimpleResponse
+	
+	if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
+		return fmt.Errorf("failed to decode response: %w", err)
+	}
+	
+	log.Println("Stop request response: ", responseData.Message)
+	defer resp.Body.Close()
+
+	return nil
 }

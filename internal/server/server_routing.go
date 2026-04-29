@@ -80,11 +80,13 @@ func serviceStopController(w http.ResponseWriter, r *http.Request) {
 	message := "Services stopped"
 
 	supervisorName := r.URL.Query().Get("supervisor_name")
+	
+	log.Println("Supervisors", daemonServer.Supervisors)
 
 	if supervisorName == "" {
 		message = "supervisor name doesn't define in query body"
 	} else if _, ok := daemonServer.Supervisors[supervisorName]; !ok {
-		responseBody = fmt.Sprintf("supervisor with name %s doesn't exist", supervisorName)
+		message = fmt.Sprintf("supervisor with name %s doesn't exist", supervisorName)
 	} else {
 		supervisor := daemonServer.Supervisors[supervisorName]
 		supervisor.StopAllServices()

@@ -72,10 +72,10 @@ func (service *Service) start() error {
 }
 
 func (service *Service) stop() {
-	
+
 	service.mu.Lock()
 	defer service.mu.Unlock()
-	
+
 	if service.CurrentState != Running || service.Command == nil || service.Command.Process == nil {
 		return
 	}
@@ -100,12 +100,25 @@ func (service *Service) monitor(cmd *exec.Cmd) {
 
 	err := cmd.Wait()
 
-	if err != nil {
-		log.Panicln("Error in waiting goroutine: ", err)
-	}
-
 	service.mu.Lock()
 	defer service.mu.Unlock()
+
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			// non‑zero exit code: exitErr.ExitCode()
+			// treat as crash
+			log.Println("Exit error happened: ", exitErr.ExitCode())
+		} else {
+			// some other error (e.g., I/O error waiting) — rarely happens
+			log.Println("Error happened")
+		}
+	} else {
+		// clean exit
+		service.CurrentState = Stopped
+		service.PID = 0
+		log.Printf("Service %s ended and stopped\n", service.Name)
+		return
+	}
 
 	select {
 	case <-service.stopSignal:

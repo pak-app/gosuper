@@ -29,6 +29,8 @@ func StartServer(socketPath string) {
 		socketPath = "tmp/gosuper.sock"
 	}
 
+	LoadSupervisors()
+
 	SocketPath = socketPath
 
 	// 1. Remove the socket file if it already exists
@@ -46,11 +48,11 @@ func StartServer(socketPath string) {
 	// 3. Define your HTTP routes
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/daemon/stop", daemonStopController)
-	mux.HandleFunc("/daemon/status", daemonStatusController)
-	mux.HandleFunc("/service/start", serviceStartController)
-	mux.HandleFunc("/service/status", serviceStatusController)
-	mux.HandleFunc("/services/stop", serviceStopController)
+	mux.HandleFunc("POST /daemon/stop", daemonStopController)
+	mux.HandleFunc("GET /daemon/status", daemonStatusController)
+	mux.HandleFunc("POST /service/start", serviceStartController)
+	mux.HandleFunc("GET /service/status", serviceStatusController)
+	mux.HandleFunc("POST /service/stop", serviceStopController)
 	// mux.HandleFunc("/log", logController)
 
 	// 4. Serve HTTP over the Unix listener
