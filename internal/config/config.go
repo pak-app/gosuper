@@ -1,8 +1,10 @@
 package config
 
 import (
-	"os"
+	"fmt"
 	"gopkg.in/yaml.v3"
+	"os"
+	"strings"
 )
 
 func LoadConfig(path string) (*Config, error) {
@@ -12,6 +14,11 @@ func LoadConfig(path string) (*Config, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	// Check if file is empty or contains only whitespace
+	if len(strings.TrimSpace(string(data))) == 0 {
+		return nil, fmt.Errorf("config file is empty")
 	}
 
 	var cfg Config
