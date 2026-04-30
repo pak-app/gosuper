@@ -9,6 +9,7 @@ import (
 )
 
 func TestLoadConfig_ValidFullYAML(t *testing.T) {
+
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "full.yaml")
 
@@ -99,6 +100,7 @@ services:
 }
 
 func TestLoadConfig_FileNotFound(t *testing.T) {
+
 	cfg, err := LoadConfig("/nonexistent/config.yaml")
 	assert.Nil(t, cfg)
 	assert.Error(t, err)
@@ -106,6 +108,7 @@ func TestLoadConfig_FileNotFound(t *testing.T) {
 }
 
 func TestLoadConfig_InvalidYAML(t *testing.T) {
+
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "broken.yaml")
 
@@ -119,17 +122,19 @@ func TestLoadConfig_InvalidYAML(t *testing.T) {
 }
 
 func TestLoadConfig_EmptyFile(t *testing.T) {
+
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "empty.yaml")
 	err := os.WriteFile(configPath, []byte{}, 0644)
 	assert.NoError(t, err)
 
 	cfg, err := LoadConfig(configPath)
-	assert.Error(t, err)         // yaml.Unmarshal with empty input gives no error
+	assert.Error(t, err) // yaml.Unmarshal with empty input gives no error
 	assert.Nil(t, cfg)
 }
 
 func TestLoadConfig_OnlySupervisor(t *testing.T) {
+
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "supervisor_only.yaml")
 	yamlContent := `
@@ -151,6 +156,7 @@ supervisor:
 }
 
 func TestLoadConfig_ServiceWithDefaultsMissing(t *testing.T) {
+
 	// When you omit optional fields, YAML should set them to zero values.
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "minimal.yaml")
