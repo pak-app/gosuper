@@ -12,6 +12,12 @@ type Supervisor struct {
 	Name             string
 }
 
+type SupervisorInterface interface {
+	RunServices() error
+	StopAllServices()
+	LoadServices(*config.Config)
+}
+
 func NewSupervisor() *Supervisor {
 	return &Supervisor{
 		Services: make(map[string]*Service),
