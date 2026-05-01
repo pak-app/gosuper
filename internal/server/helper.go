@@ -8,7 +8,7 @@ import (
 
 func setupSupervisor(cfg *config.Config) {
 
-	var supervisor *core.Supervisor
+	var supervisor core.SupervisorInterface
 
 	supervisor, ok := daemonServer.Supervisors[cfg.Supervisor.Name]
 

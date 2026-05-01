@@ -11,7 +11,7 @@ import (
 
 type DaemonServer struct {
 	mu          sync.RWMutex
-	Supervisors map[string]*core.Supervisor
+	Supervisors map[string]core.SupervisorInterface
 }
 
 var SocketPath string
@@ -20,7 +20,7 @@ var daemonServer *DaemonServer
 
 func LoadSupervisors() {
 	daemonServer =  &DaemonServer{
-		Supervisors: make(map[string]*core.Supervisor),
+		Supervisors: make(map[string]core.SupervisorInterface),
 	}
 }
 
