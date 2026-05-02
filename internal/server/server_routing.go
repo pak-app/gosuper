@@ -56,7 +56,9 @@ func serviceStatusController(w http.ResponseWriter, r *http.Request) {
 func serviceStartController(w http.ResponseWriter, r *http.Request) {
 	// 1. Create an empty struct to hold the incoming data
 	var appConfig config.Config
-
+	
+	message := "services run successfully"
+	
 	// 2. Decode the JSON body from the request into the struct
 	err := json.NewDecoder(r.Body).Decode(&appConfig)
 	if err != nil {
@@ -65,11 +67,15 @@ func serviceStartController(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	setupSupervisor(&appConfig)
+	if appConfig.Supervisor.Name == "" {
+		message = "supervisor name doesn't set in config file"
+	} else {
+		setupSupervisor(&appConfig)
+	}
 
 	// 3. Send a success response back to the client
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"message": "services run successfully"}`))
+	w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, message)))
 
 }
 
@@ -80,8 +86,6 @@ func serviceStopController(w http.ResponseWriter, r *http.Request) {
 	message := "Services stopped"
 
 	supervisorName := r.URL.Query().Get("supervisor_name")
-	
-	log.Println("Supervisors", daemonServer.Supervisors)
 
 	if supervisorName == "" {
 		message = "supervisor name doesn't define in query body"
