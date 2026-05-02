@@ -6,14 +6,19 @@ import (
 	"github.com/pak-app/gosuper/internal/core"
 )
 
+var newSupervisor = func () core.SupervisorInterface {
+	return core.NewSupervisor()
+}
+
 func setupSupervisor(cfg *config.Config) {
 
 	var supervisor core.SupervisorInterface
 
 	supervisor, ok := daemonServer.Supervisors[cfg.Supervisor.Name]
 
+
 	if !ok {
-		supervisor = core.NewSupervisor()
+		supervisor = newSupervisor()
 		supervisor.LoadServices(cfg)
 	}
 
