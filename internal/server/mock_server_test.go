@@ -40,12 +40,12 @@ func (m *MockDaemonServer) GetAllStatus() map[string]core.SupervisorStatus {
 }
 
 func (m *MockDaemonServer) GetSupervisor(name string) (core.SupervisorInterface, bool) {
-	args := m.Called()
+	args := m.Called(name)
 	return args.Get(0).(core.SupervisorInterface), args.Bool(1)
 }
 
 func (m *MockDaemonServer) StoreSupervisor(name string, sup core.SupervisorInterface) {
-	m.Called()
+	m.Called(name, sup)
 }
 
 func (m *MockDaemonServer) SupervisorCount() int {
@@ -54,5 +54,5 @@ func (m *MockDaemonServer) SupervisorCount() int {
 }
 
 func (m *MockDaemonServer) RemoveSupervisor(name string) {
-	m.Called()
+	m.Called(name)
 }
