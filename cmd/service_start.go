@@ -28,7 +28,7 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		err = c.ServiceStartRequest(AppConfig)
+		err = c.ServiceStartRequest(appConfig)
 
 		if err != nil {
 			log.Println(err)

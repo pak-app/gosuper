@@ -1,19 +1,20 @@
 /*
 Copyright © 2026 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
 	"fmt"
 	"log"
+
 	"github.com/pak-app/gosuper/internal/config"
 	"github.com/spf13/cobra"
 )
 
-var AppConfig *config.Config
+var appConfig *config.Config
 var cfgFilePath string
-var serviceName string
+var supervisorName string
+
 const defaultConfigFilePath string = "gosuper.yaml"
 
 // serviceCmd represents the service command
@@ -40,7 +41,7 @@ to quickly create a Cobra application.`,
 			return fmt.Errorf("failed to load config: %w", err)
 		}
 
-		AppConfig = c
+		appConfig = c
 		return nil
 	},
 }
@@ -54,7 +55,7 @@ func init() {
 	// and all subcommands, e.g.:
 	// serviceCmd.PersistentFlags().String("foo", "", "A help for foo")
 	serviceCmd.PersistentFlags().StringVarP(&cfgFilePath, "config", "c", defaultConfigFilePath, "config file (default is gosuper.yaml)")
-	serviceCmd.PersistentFlags().StringVar(&serviceName, "name", "", "name of the service")
+	serviceCmd.PersistentFlags().StringVar(&supervisorName, "supervisor-name", "", "name of the service")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
