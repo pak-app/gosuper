@@ -106,14 +106,13 @@ func serviceStartController(w http.ResponseWriter, r *http.Request) {
 
 	// 3. Send a success response back to the client
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, message)))
+	w.Write([]byte(simpleMessageResponse(message)))
 
 }
 
 // /stop route
 func serviceStopController(w http.ResponseWriter, r *http.Request) {
 
-	responseBody := `{"message": "%s"}`
 	message := "Services stopped"
 
 	supervisorName := r.URL.Query().Get("supervisor_name")
@@ -129,5 +128,5 @@ func serviceStopController(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(fmt.Sprintf(responseBody, message)))
+	w.Write([]byte(simpleMessageResponse(message)))
 }
