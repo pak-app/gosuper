@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"sync"
+	"time"
 
 	"github.com/pak-app/gosuper/internal/config"
 )
@@ -30,6 +31,16 @@ type Service struct {
 	Name           string
 	mu             sync.RWMutex
 	stopSignal     chan struct{}
+	StartedAt      time.Time
+}
+
+// later CPU, and Memory usage
+type ServiceStatus struct {
+	Name      string       `json:"name"`
+	State     ServiceState `json:"state"`
+	PID       int          `json:"pid"`
+	StartedAt time.Time    `jsonn:"started_at"`
+	UptimeMS  int64        `json:"up_time_ms"`
 }
 
 func (service *Service) start() error {
@@ -64,6 +75,7 @@ func (service *Service) start() error {
 	service.mu.Lock()
 	service.CurrentState = Running
 	service.PID = cmd.Process.Pid
+	service.StartedAt = time.Now()
 	service.mu.Unlock()
 
 	go service.monitor(cmd) // monitor service process
@@ -133,5 +145,26 @@ func (service *Service) monitor(cmd *exec.Cmd) {
 		log.Printf("Service %s exited unexpectedly (err: %v)\n", service.Name, err)
 
 		// TODO: Add auto-restart logic here
+	}
+}
+
+func (service *Service) status() ServiceStatus {
+	service.mu.RLock()
+	defer service.mu.RUnlock()
+
+	var delta int64
+
+	if service.StartedAt.IsZero() {
+		delta = 0
+	} else {
+		delta = time.Since(service.StartedAt).Milliseconds()
+	}
+
+	return ServiceStatus{
+		Name:      service.Name,
+		State:     service.CurrentState,
+		PID:       service.PID,
+		StartedAt: service.StartedAt,
+		UptimeMS:  delta,
 	}
 }

@@ -129,7 +129,6 @@ func (c *Client) ServiceStartRequest(serviceConfig *config.Config) error {
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err) // response is nil here, don't touch it
 	}
-	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to start service/services: %v", res.StatusCode)
@@ -170,18 +169,52 @@ func (c *Client) ServiceStopRequest(supervisorName string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
-	
+
 	var responseData types.SimpleResponse
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
 		return fmt.Errorf("failed to decode response: %w", err)
 	}
-	
+
 	log.Println("Stop request response: ", responseData.Message)
+	defer resp.Body.Close()
+
+	return nil
+}
+
+func (c *Client) ServiceStatusRequest(supervisorName string) error {
+	url := &url.URL{
+		Scheme: "http",
+		Host:   "unix",
+		Path:   "/service/status",
+	}
+
+	q := url.Query()
+
+	if supervisorName != "" {
+		q.Set("supervisor_name", supervisorName)
+		url.RawQuery = q.Encode()
+	}
+
+	req, err := http.NewRequest(http.MethodPost, url.String(), nil)
+
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
 	defer resp.Body.Close()
 
 	return nil

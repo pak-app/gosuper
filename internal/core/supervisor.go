@@ -12,10 +12,16 @@ type Supervisor struct {
 	Name             string
 }
 
+type SupervisorStatus struct {
+	Name           string                   `json:"supervisor_name"`
+	ServicesStatus map[string]ServiceStatus `json:"services"`
+}
+
 type SupervisorInterface interface {
 	RunServices() error
 	StopAllServices()
 	LoadServices(*config.Config)
+	Status() SupervisorStatus
 }
 
 func NewSupervisor() *Supervisor {
@@ -77,4 +83,44 @@ func (sup *Supervisor) StopAllServices() {
 	}
 
 	wg.Wait()
+}
+
+func (sup *Supervisor) Status() SupervisorStatus {
+
+	sup.mu.RLock()
+	services := make([]*Service, len(sup.Services))
+	for _, svc := range sup.Services {
+		services = append(services, svc)
+	}
+	sup.mu.RUnlock()
+
+	num := len(services)
+
+	results := make(chan ServiceStatus, num)
+
+	var wg sync.WaitGroup
+
+	wg.Add(num)
+
+	for _, svc := range services {
+		go func(s *Service) {
+			defer wg.Done()
+			results <- s.status()
+		}(svc)
+	}
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	svcMap := make(map[string]ServiceStatus, num)
+	for status := range results {
+		svcMap[status.Name] = status
+	}
+
+	return SupervisorStatus{
+		Name:           sup.Name,
+		ServicesStatus: svcMap,
+	}
 }
