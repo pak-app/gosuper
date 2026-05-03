@@ -3,6 +3,7 @@ package server
 import (
 	// "github.com/pak-app/gosuper/internal/core"
 	"github.com/pak-app/gosuper/internal/config"
+	"github.com/pak-app/gosuper/internal/core"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -22,4 +23,9 @@ func (m *MockSupervisor) StopAllServices() {
 
 func (m *MockSupervisor) LoadServices(cfg *config.Config) {
 	m.Called()
+}
+
+func (m *MockSupervisor) Status() core.SupervisorStatus{
+	args := m.Called()
+	return args.Get(0).(core.SupervisorStatus)
 }
