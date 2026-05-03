@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pak-app/gosuper/internal/config"
-	"github.com/pak-app/gosuper/internal/types"
 	"github.com/pak-app/gosuper/internal/core"
+	"github.com/pak-app/gosuper/internal/types"
 	"log"
 	"net"
 	"net/http"
@@ -46,6 +46,13 @@ func New(socketPath string) (*Client, error) {
 		// but http.NewRequest requires a valid URL format.
 		baseURL: "http://localhost",
 	}, nil
+}
+
+func newClientForTesting(baseURL string, transport http.RoundTripper) *Client {
+	return &Client{
+		httpClient: &http.Client{Transport: transport},
+		baseURL:    baseURL,
+	}
 }
 
 func (c *Client) SartDaemonRequest() error {
@@ -148,81 +155,80 @@ func (c *Client) ServiceStartRequest(serviceConfig *config.Config) error {
 }
 
 func (c *Client) ServiceStopRequest(supervisorName string) error {
-	// URL scheme doesn't matter for Unix socket, but we need a valid URL
-	// The hostname is ignored when using custom DialContext
-	url := &url.URL{
-		Scheme: "http",
-		Host:   "unix", // dummy host, won't be used
-		Path:   "/service/stop",
-	}
+    // Parse the base URL so we can safely modify it
+    base, err := url.Parse(c.baseURL)
+    if err != nil {
+        return fmt.Errorf("invalid base URL: %w", err)
+    }
 
-	// Add query parameters
-	q := url.Query()
-	q.Set("supervisor_name", supervisorName)
-	url.RawQuery = q.Encode()
+    // Set the specific path
+    base.Path = "/service/stop"
 
-	req, err := http.NewRequest(http.MethodPost, url.String(), nil)
-	if err != nil {
-		return err
-	}
+    // Add query parameters
+    q := base.Query()
+    q.Set("supervisor_name", supervisorName)
+    base.RawQuery = q.Encode()
 
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return err
-	}
+    req, err := http.NewRequest(http.MethodPost, base.String(), nil)
+    if err != nil {
+        return err
+    }
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
+    resp, err := c.httpClient.Do(req)
+    if err != nil {
+        return err
+    }
+    defer resp.Body.Close()
 
-	var responseData types.SimpleResponse
+    if resp.StatusCode != http.StatusOK {
+        return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+    }
 
-	if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
-		return fmt.Errorf("failed to decode response: %w", err)
-	}
+    var responseData types.SimpleResponse
+    if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
+        return fmt.Errorf("failed to decode response: %w", err)
+    }
 
-	log.Println("Stop request response: ", responseData.Message)
-	defer resp.Body.Close()
-
-	return nil
+    log.Println("Stop request response: ", responseData.Message)
+    return nil
 }
 
 func (c *Client) ServiceStatusRequest(supervisorName string) (map[string]*core.SupervisorStatus, error) {
-	url := &url.URL{
-		Scheme: "http",
-		Host:   "unix",
-		Path:   "/service/status",
-	}
+    // Parse the client's base URL
+    base, err := url.Parse(c.baseURL)
+    if err != nil {
+        return nil, fmt.Errorf("invalid base URL: %w", err)
+    }
 
-	q := url.Query()
+    // Set the endpoint path
+    base.Path = "/service/status"
 
-	if supervisorName != "" {
-		q.Set("supervisor_name", supervisorName)
-		url.RawQuery = q.Encode()
-	}
+    // Add query parameter if supervisor name is provided
+    if supervisorName != "" {
+        q := base.Query()
+        q.Set("supervisor_name", supervisorName)
+        base.RawQuery = q.Encode()
+    }
 
-	req, err := http.NewRequest(http.MethodPost, url.String(), nil)
+    req, err := http.NewRequest(http.MethodGet, base.String(), nil)
+    if err != nil {
+        return nil, err
+    }
 
-	if err != nil {
-		return nil, err
-	}
+    resp, err := c.httpClient.Do(req)
+    if err != nil {
+        return nil, err
+    }
+    defer resp.Body.Close()
 
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
+    if resp.StatusCode != http.StatusOK {
+        return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+    }
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
+    responseData := make(map[string]*core.SupervisorStatus)
+    if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
+        return nil, fmt.Errorf("failed to decode response: %w", err)
+    }
 
-	defer resp.Body.Close()
-
-	responseData := make(map[string]*core.SupervisorStatus)
-
-	if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
-	}
-
-	return responseData, nil
+    return responseData, nil
 }
