@@ -6,13 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"sync"
 )
-
-type DaemonServer struct {
-	mu          sync.RWMutex
-	Supervisors map[string]core.SupervisorInterface
-}
 
 var SocketPath string
 var Server *http.Server

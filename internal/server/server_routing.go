@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/pak-app/gosuper/internal/config"
+	"github.com/pak-app/gosuper/internal/core"
 )
 
 func gracefulShutdown() {
@@ -48,17 +49,40 @@ func daemonStatusController(w http.ResponseWriter, r *http.Request) {
 
 // /service/status route
 func serviceStatusController(w http.ResponseWriter, r *http.Request) {
+
+	supervisorName := r.URL.Query().Get("supervisor_name")
+	
+	var supervisors map[string]core.SupervisorStatus
+
+	// Send back all supervisors status
+	if supervisorName == "" {
+		supervisors = make(map[string]core.SupervisorStatus, len(daemonServer.Supervisors))
+		supervisors = daemonServer.GetAllStatus()
+	} else { // return target supervisor
+		supervisors = make(map[string]core.SupervisorStatus, 1)
+		sup := daemonServer.Supervisors[supervisorName]
+		supervisors[supervisorName] = sup.Status()
+	}
+
+    jsonBytes, err := json.Marshal(supervisors)
+    if err != nil {
+        log.Println("Error:", err)
+        return
+    }
+
+    jsonString := string(jsonBytes)
+
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"status": "running", "services": 2}`))
+	w.Write([]byte(jsonString))
 }
 
 // /service/start route
 func serviceStartController(w http.ResponseWriter, r *http.Request) {
 	// 1. Create an empty struct to hold the incoming data
 	var appConfig config.Config
-	
+
 	message := "services run successfully"
-	
+
 	// 2. Decode the JSON body from the request into the struct
 	err := json.NewDecoder(r.Body).Decode(&appConfig)
 	if err != nil {
