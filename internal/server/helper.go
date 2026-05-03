@@ -1,7 +1,9 @@
 package server
 
 import (
+	"fmt"
 	"log"
+
 	"github.com/pak-app/gosuper/internal/config"
 	"github.com/pak-app/gosuper/internal/core"
 )
@@ -14,7 +16,7 @@ func setupSupervisor(cfg *config.Config) {
 
 	var supervisor core.SupervisorInterface
 
-	supervisor, ok := daemonServer.Supervisors[cfg.Supervisor.Name]
+	supervisor, ok := daemonServer.GetSupervisor(cfg.Supervisor.Name)
 
 
 	if !ok {
@@ -28,5 +30,9 @@ func setupSupervisor(cfg *config.Config) {
 		log.Println("Error during running services: ", err)
 	}
 
-	daemonServer.Supervisors[cfg.Supervisor.Name] = supervisor
+	daemonServer.StoreSupervisor(cfg.Supervisor.Name, supervisor)
+}
+
+func simpleMessageResponse(message string) string {
+	return fmt.Sprintf(`{"message":"%s"}`, message)
 }

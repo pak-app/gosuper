@@ -10,7 +10,7 @@ import (
 
 var SocketPath string
 var Server *http.Server
-var daemonServer *DaemonServer
+var daemonServer DaemonServerInterface
 
 func LoadSupervisors() {
 	daemonServer =  &DaemonServer{
