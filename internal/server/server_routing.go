@@ -51,26 +51,33 @@ func daemonStatusController(w http.ResponseWriter, r *http.Request) {
 func serviceStatusController(w http.ResponseWriter, r *http.Request) {
 
 	supervisorName := r.URL.Query().Get("supervisor_name")
-	
+
 	var supervisors map[string]core.SupervisorStatus
 
 	// Send back all supervisors status
 	if supervisorName == "" {
-		supervisors = make(map[string]core.SupervisorStatus, len(daemonServer.Supervisors))
+		supervisors = make(map[string]core.SupervisorStatus, daemonServer.SupervisorCount())
 		supervisors = daemonServer.GetAllStatus()
 	} else { // return target supervisor
 		supervisors = make(map[string]core.SupervisorStatus, 1)
-		sup := daemonServer.Supervisors[supervisorName]
+		sup, ok := daemonServer.GetSupervisor(supervisorName)
+
+		if !ok {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(simpleMessageResponse("supervisor doesn't exist")))
+			return
+		}
+
 		supervisors[supervisorName] = sup.Status()
 	}
 
-    jsonBytes, err := json.Marshal(supervisors)
-    if err != nil {
-        log.Println("Error:", err)
-        return
-    }
+	jsonBytes, err := json.Marshal(supervisors)
+	if err != nil {
+		log.Println("Error:", err)
+		return
+	}
 
-    jsonString := string(jsonBytes)
+	jsonString := string(jsonBytes)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(jsonString))
@@ -113,12 +120,12 @@ func serviceStopController(w http.ResponseWriter, r *http.Request) {
 
 	if supervisorName == "" {
 		message = "supervisor name doesn't define in query body"
-	} else if _, ok := daemonServer.Supervisors[supervisorName]; !ok {
+	} else if _, ok := daemonServer.GetSupervisor(supervisorName); !ok {
 		message = fmt.Sprintf("supervisor with name %s doesn't exist", supervisorName)
 	} else {
-		supervisor := daemonServer.Supervisors[supervisorName]
+		supervisor, _ := daemonServer.GetSupervisor(supervisorName)
 		supervisor.StopAllServices()
-		delete(daemonServer.Supervisors, supervisorName)
+		daemonServer.RemoveSupervisor(supervisorName)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

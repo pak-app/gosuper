@@ -14,7 +14,7 @@ func TestServiceStopController_Success(t *testing.T) {
 	// 1. Setup mock
 	mockSup := new(MockSupervisor)
 	mockSup.On("StopAllServices").Return()
-
+	
 	// 2. Prepare global daemonServer
 	daemonServer = &DaemonServer{
 		Supervisors: map[string]core.SupervisorInterface{
@@ -77,7 +77,7 @@ func TestServiceStartController_Success(t *testing.T) {
 	mockSup.On("RunServices").Return(nil)
 
 	// Override factory
-    // Mocking core.NewSupervisor via package scope variable
+	// Mocking core.NewSupervisor via package scope variable
 	oldFactory := newSupervisor
 	newSupervisor = func() core.SupervisorInterface { return mockSup }
 	defer func() { newSupervisor = oldFactory }()
@@ -117,4 +117,76 @@ func TestServicesStartController_MissingSupName(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "supervisor name doesn't set in config file")
+}
+
+func TestServiceStatusContorller_Success(t *testing.T) {
+
+	mockSup := new(MockSupervisor)
+	mockSup.On("Status").Return(core.SupervisorStatus{
+		Name:           "sup_1",
+		ServicesStatus: make(map[string]core.ServiceStatus),
+	})
+
+	daemonServer = &DaemonServer{
+		Supervisors: map[string]core.SupervisorInterface{
+			"sup_1": mockSup,
+		},
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/service/status?supervisor_name=sup_1", nil)
+	w := httptest.NewRecorder()
+
+	serviceStatusController(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "sup_1")
+	mockSup.AssertCalled(t, "Status")
+}
+
+func TestServiceStatusContorller_MissingSupName(t *testing.T) {
+
+	mockSup := new(MockSupervisor)
+	mockSup.On("Status").Return(core.SupervisorStatus{
+		Name:           "sup_1",
+		ServicesStatus: make(map[string]core.ServiceStatus),
+	})
+
+	daemonServer = &DaemonServer{
+		Supervisors: map[string]core.SupervisorInterface{
+			"sup_1": mockSup,
+		},
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/service/status?supervisor_name=sup_2", nil)
+	w := httptest.NewRecorder()
+
+	serviceStatusController(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "supervisor doesn't exist")
+}
+
+func TestServiceStatusController_AllSupStatus(t *testing.T) {
+	
+	fakeDaemonStatus := map[string]core.SupervisorStatus{
+		"sup_1": {Name: "sup_1"},
+		"sup_2": {Name: "sup_2"},
+	}
+	
+	mockDmn := new(MockDaemonServer)
+	mockDmn.On("GetAllStatus").Return(fakeDaemonStatus)
+	mockDmn.On("SupervisorCount").Return(2)
+
+
+	daemonServer = mockDmn
+
+	req := httptest.NewRequest(http.MethodPost, "/service/status", nil)
+	w := httptest.NewRecorder()
+
+	serviceStatusController(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "sup_1")
+	assert.Contains(t, w.Body.String(), "sup_2")
+	mockDmn.AssertCalled(t, "GetAllStatus")
 }
