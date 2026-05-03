@@ -4,9 +4,10 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"log"
+
 	"github.com/pak-app/gosuper/internal/client"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 // stopServiceCmd represents the stopService command
@@ -29,10 +30,10 @@ to quickly create a Cobra application.`,
 
 		var name string
 
-		if AppConfig.Supervisor.Name != "" {
-			name = AppConfig.Supervisor.Name
-		} else if serviceName != "" {
-			name = serviceName
+		if appConfig.Supervisor.Name != "" {
+			name = appConfig.Supervisor.Name
+		} else if supervisorName != "" {
+			name = supervisorName
 		} else {
 			log.Println("Group name doesn't set for services")
 			return
