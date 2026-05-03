@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/pak-app/gosuper/internal/config"
 	"github.com/pak-app/gosuper/internal/types"
+	"github.com/pak-app/gosuper/internal/core"
 	"log"
 	"net"
 	"net/http"
@@ -186,7 +187,7 @@ func (c *Client) ServiceStopRequest(supervisorName string) error {
 	return nil
 }
 
-func (c *Client) ServiceStatusRequest(supervisorName string) error {
+func (c *Client) ServiceStatusRequest(supervisorName string) (map[string]*core.SupervisorStatus, error) {
 	url := &url.URL{
 		Scheme: "http",
 		Host:   "unix",
@@ -203,19 +204,25 @@ func (c *Client) ServiceStatusRequest(supervisorName string) error {
 	req, err := http.NewRequest(http.MethodPost, url.String(), nil)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
 	defer resp.Body.Close()
 
-	return nil
+	responseData := make(map[string]*core.SupervisorStatus)
+
+	if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return responseData, nil
 }
