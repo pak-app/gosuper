@@ -1,10 +1,12 @@
 package server
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	// "strings"
+
 	"testing"
+	"time"
 
 	// "github.com/pak-app/gosuper/internal/core"
 	"github.com/stretchr/testify/assert"
@@ -12,7 +14,18 @@ import (
 
 func TestDaemonStatusController_Success(t *testing.T) {
 
-	req := httptest.NewRequest(http.MethodPost, "/daemon/stop", nil)
+	currentTimeMilli := time.Now().UnixMilli()
+
+	mockDmn := new(MockDaemonServer)
+	mockDmn.On("Status").Return(DaemonServerStatus{
+		SupervisorsCounts: 10,
+		StartedAt:         currentTimeMilli,
+		State:             Alive,
+	})
+
+	daemonServer = mockDmn
+
+	req := httptest.NewRequest(http.MethodGet, "/daemon/status", nil)
 	w := httptest.NewRecorder()
 
 	daemonStatusController(w, req)
@@ -20,9 +33,19 @@ func TestDaemonStatusController_Success(t *testing.T) {
 	// 5. Check HTTP response
 	resp := w.Result()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	body := w.Body.String()
-	assert.Contains(t, body, "status")
-	assert.Contains(t, body, "up_time")
-	assert.Contains(t, body, "start_date")
 
+	body := w.Body.Bytes()
+
+	var response DaemonServerStatus
+
+	if err := json.Unmarshal(body, &response); err != nil {
+		t.Log("Error occured:", err)
+		return
+	}
+
+	assert.Equal(t, currentTimeMilli, response.StartedAt)
+	assert.Equal(t, Alive, response.State)
+	assert.Equal(t, 10, response.SupervisorsCounts)
+
+	mockDmn.AssertCalled(t, "Status")
 }

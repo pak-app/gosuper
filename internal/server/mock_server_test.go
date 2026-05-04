@@ -56,3 +56,12 @@ func (m *MockDaemonServer) SupervisorCount() int {
 func (m *MockDaemonServer) RemoveSupervisor(name string) {
 	m.Called(name)
 }
+
+func (m *MockDaemonServer) Status() DaemonServerStatus {
+	args := m.Called()
+	return args.Get(0).(DaemonServerStatus)
+}
+
+func (m *MockDaemonServer) setState(state DaemonServerState) {
+	m.Called(state)
+}

@@ -1,8 +1,10 @@
 package server
 
 import (
-	"github.com/pak-app/gosuper/internal/core"
 	"sync"
+	"time"
+
+	"github.com/pak-app/gosuper/internal/core"
 )
 
 type DaemonServerInterface interface {
@@ -11,11 +13,30 @@ type DaemonServerInterface interface {
 	StoreSupervisor(string, core.SupervisorInterface)
 	SupervisorCount() int
 	RemoveSupervisor(string)
+	Status() DaemonServerStatus
+	setState(DaemonServerState)
 }
+
+type DaemonServerState string
+
+const (
+	Stopped  DaemonServerState = "Stopped"
+	Alive    DaemonServerState = "Alive"
+	Starting DaemonServerState = "Starting"
+	Stopping DaemonServerState = "Stopping"
+)
 
 type DaemonServer struct {
 	mu          sync.RWMutex
 	Supervisors map[string]core.SupervisorInterface
+	StartedAt   time.Time
+	State       DaemonServerState
+}
+
+type DaemonServerStatus struct {
+	SupervisorsCounts int               `json:"supervisor_counts"`
+	StartedAt         int64             `json:"started_at"`
+	State             DaemonServerState `json:"state"`
 }
 
 func (ds *DaemonServer) GetAllStatus() map[string]core.SupervisorStatus {
@@ -77,4 +98,16 @@ func (ds *DaemonServer) SupervisorCount() int {
 func (ds *DaemonServer) RemoveSupervisor(name string) {
 	ds.mu.Lock()
 	delete(ds.Supervisors, name)
+}
+
+func (ds *DaemonServer) Status() DaemonServerStatus {
+	return DaemonServerStatus{
+		SupervisorsCounts: len(ds.Supervisors),
+		StartedAt:         ds.StartedAt.UnixMilli(),
+		State:             ds.State,
+	}
+}
+
+func (ds *DaemonServer) setState(state DaemonServerState) {
+	ds.State = state
 }

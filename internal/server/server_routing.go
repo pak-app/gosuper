@@ -43,8 +43,20 @@ func daemonStopController(w http.ResponseWriter, r *http.Request) {
 }
 
 func daemonStatusController(w http.ResponseWriter, r *http.Request) {
+
+	status := daemonServer.Status()
+
+	jsonBytes, err := json.Marshal(status)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(simpleMessageResponse(err.Error())))
+		return
+	}
+
+	jsonString := string(jsonBytes)
+
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"status": "alive", "up_time": 1888, "start_date": "2025-12-12 12:00:00"}`))
+	w.Write([]byte(jsonString))
 }
 
 // /service/status route

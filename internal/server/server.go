@@ -15,6 +15,7 @@ var daemonServer DaemonServerInterface
 func LoadSupervisors() {
 	daemonServer =  &DaemonServer{
 		Supervisors: make(map[string]core.SupervisorInterface),
+		State: Stopped,
 	}
 }
 
@@ -54,4 +55,6 @@ func StartServer(socketPath string) {
 	if err := Server.Serve(listener); err != nil {
 		log.Panic(err)
 	}
+
+	daemonServer.setState(Alive)
 }
