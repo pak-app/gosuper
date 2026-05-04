@@ -28,5 +28,17 @@ go.work.sum
 .env
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
+
+# Log directory
+log/
+
+# Temporary directory
+tmp/
+
+# Program bianry file
+gosuper
+
+# gosuper test config file
+gosuper.yaml
