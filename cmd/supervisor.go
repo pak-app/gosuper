@@ -14,19 +14,19 @@ var supervisorName string
 
 const defaultConfigFilePath string = "gosuper.yaml"
 
-// serviceCmd represents the service command
-var serviceCmd = &cobra.Command{
-	Use:   "service",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+// supervisorCmd represents the service command
+var supervisorCmd = &cobra.Command{
+	Use:   "supervisor",
+	Short: "Manage and monitor background supervisors(group of services)",
+	Long: `The supervisor command acts as the central process manager for your application.
+It provides subcommands to start, stop, restart, and monitor background services.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("service called")
-	},
+Before any subcommand is executed, the supervisor automatically loads the required 
+configuration file to determine the state and rules for the processes. 
+(Default config path: /etc/myapp/config.yaml)`,
+
+	// Run: func(cmd *cobra.Command, args []string) {
+	// },
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		if cfgFilePath == "" {
 			cfgFilePath = defaultConfigFilePath
@@ -44,15 +44,15 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	rootCmd.AddCommand(serviceCmd)
+	rootCmd.AddCommand(supervisorCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// serviceCmd.PersistentFlags().String("foo", "", "A help for foo")
-	serviceCmd.PersistentFlags().StringVarP(&cfgFilePath, "config", "c", defaultConfigFilePath, "config file (default is gosuper.yaml)")
-	serviceCmd.PersistentFlags().StringVar(&supervisorName, "supervisor-name", "", "name of the service")
+	supervisorCmd.PersistentFlags().StringVarP(&cfgFilePath, "config", "c", defaultConfigFilePath, "config file")
+	supervisorCmd.PersistentFlags().StringVar(&supervisorName, "supervisor-name", "", "name of the service")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

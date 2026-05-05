@@ -34,7 +34,7 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	serviceCmd.AddCommand(startServiceCmd)
+	supervisorCmd.AddCommand(startServiceCmd)
 
 	// Here you will define your flags and configuration settings.
 

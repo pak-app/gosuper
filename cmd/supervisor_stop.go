@@ -45,7 +45,7 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	serviceCmd.AddCommand(stopServiceCmd)
+	supervisorCmd.AddCommand(stopServiceCmd)
 
 	stopServiceCmd.Flags().String("service-name", "", "Name of the service to stop")
 }
