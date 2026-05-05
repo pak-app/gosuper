@@ -11,6 +11,4 @@ func main() {
 	defer logging.Close()
 
 	cmd.Execute()
-
-	// api.StartServer("tmp/gosuper.sock")
 }

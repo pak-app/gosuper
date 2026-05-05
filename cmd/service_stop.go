@@ -36,7 +36,7 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		err = c.ServiceStopRequest(name)
+		_, err = c.ServiceStopRequest(name)
 
 		if err != nil {
 			log.Println(err)
