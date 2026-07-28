@@ -8,7 +8,7 @@ import (
 )
 
 // stopServiceCmd represents the stopService command
-var stopServiceCmd = &cobra.Command{
+var stopSupervisorCmd = &cobra.Command{
 	Use:   "stop",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples

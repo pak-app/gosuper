@@ -11,11 +11,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var appConfig *config.Config
-var cfgFilePath string
-var supervisorName string
+// var appConfig *config.Config
+// var cfgFilePath string
+// var supervisorName string
 
-const defaultConfigFilePath string = "gosuper.yaml"
+// const defaultConfigFilePath string = "gosuper.yaml"
 
 // serviceCmd represents the service command
 var serviceCmd = &cobra.Command{

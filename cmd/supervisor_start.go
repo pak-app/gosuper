@@ -8,7 +8,7 @@ import (
 )
 
 // startServiceCmd represents the startService command
-var startServiceCmd = &cobra.Command{
+var startSupervisorCmd = &cobra.Command{
 	Use:   "start",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples

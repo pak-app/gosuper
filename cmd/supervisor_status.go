@@ -8,7 +8,7 @@ import (
 )
 
 // statusServiceCmd represents the statusService command
-var statusServiceCmd = &cobra.Command{
+var statusSupervisorCmd = &cobra.Command{
 	Use:   "status",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
