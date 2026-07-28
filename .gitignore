@@ -42,3 +42,6 @@ gosuper
 
 # gosuper test config file
 gosuper.yaml
+
+# Graphify
+graphify-out/

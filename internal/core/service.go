@@ -103,7 +103,7 @@ func (service *Service) stop() {
 	// Kill the process
 	err := service.Command.Process.Kill()
 	if err != nil {
-		log.Printf("failed to kill service %s: %w\n", service.Name, err)
+		log.Printf("failed to kill service %s: %v\n", service.Name, err)
 	}
 
 }
