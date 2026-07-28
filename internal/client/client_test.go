@@ -11,7 +11,7 @@ func TestServiceStartRequest_Success(t *testing.T) {
 	defer server.Close()
 
 	cfg := &config.Config{Supervisor: config.SupervisorConfig{Name: "test"}}
-	err := client.ServiceStartRequest(cfg)
+	_, err := client.ServiceStartRequest(cfg)
 	assert.NoError(t, err)
 }
 
@@ -19,7 +19,7 @@ func TestServiceStopRequest_Success(t *testing.T) {
 	server, client := newFakeDaemonServer(t)
 	defer server.Close()
 
-	err := client.ServiceStopRequest("test")
+	_, err := client.ServiceStopRequest("test")
 	assert.NoError(t, err)
 }
 

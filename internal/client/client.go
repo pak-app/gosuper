@@ -112,22 +112,20 @@ func (c *Client) DaemonStatusRequest() (*Daemon, error) {
 		return nil, fmt.Errorf("daemon is dead")
 	}
 
-	log.Printf("Daemon status %v and it started from %v.\nUp Time: %v", result.Status, result.StartDate, result.UpTime)
-
 	return &result, nil
 }
 
-func (c *Client) ServiceStartRequest(serviceConfig *config.Config) error {
+func (c *Client) ServiceStartRequest(serviceConfig *config.Config) (types.SimpleResponse, error) {
 
 	jsonData, err := json.Marshal(serviceConfig)
 	if err != nil {
-		return err
+		return types.SimpleResponse{}, err
 	}
 
 	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/service/start", bytes.NewBuffer(jsonData))
 
 	if err != nil {
-		return err
+		return types.SimpleResponse{}, err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -135,30 +133,29 @@ func (c *Client) ServiceStartRequest(serviceConfig *config.Config) error {
 	res, err := c.httpClient.Do(req)
 
 	if err != nil {
-		return fmt.Errorf("request failed: %w", err) // response is nil here, don't touch it
+		return types.SimpleResponse{}, fmt.Errorf("request failed: %w", err) // response is nil here, don't touch it
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to start service/services: %v", res.StatusCode)
+		return types.SimpleResponse{}, fmt.Errorf("failed to start service/services: %v", res.StatusCode)
 	}
 
 	var responseData types.SimpleResponse
 
 	if err := json.NewDecoder(res.Body).Decode(&responseData); err != nil {
-		return fmt.Errorf("failed to decode response: %w", err)
+		return types.SimpleResponse{}, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	log.Printf("service started successfully: %s", responseData.Message)
 	defer res.Body.Close()
 
-	return nil
+	return responseData, nil
 }
 
-func (c *Client) ServiceStopRequest(supervisorName string) error {
+func (c *Client) ServiceStopRequest(supervisorName string) (types.SimpleResponse, error) {
     // Parse the base URL so we can safely modify it
     base, err := url.Parse(c.baseURL)
     if err != nil {
-        return fmt.Errorf("invalid base URL: %w", err)
+        return types.SimpleResponse{}, fmt.Errorf("invalid base URL: %w", err)
     }
 
     // Set the specific path
@@ -171,26 +168,26 @@ func (c *Client) ServiceStopRequest(supervisorName string) error {
 
     req, err := http.NewRequest(http.MethodPost, base.String(), nil)
     if err != nil {
-        return err
+        return types.SimpleResponse{}, err
     }
 
     resp, err := c.httpClient.Do(req)
     if err != nil {
-        return err
+        return types.SimpleResponse{}, err
     }
     defer resp.Body.Close()
 
     if resp.StatusCode != http.StatusOK {
-        return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+        return types.SimpleResponse{}, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
     }
 
     var responseData types.SimpleResponse
     if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
-        return fmt.Errorf("failed to decode response: %w", err)
+        return types.SimpleResponse{}, fmt.Errorf("failed to decode response: %w", err)
     }
 
     log.Println("Stop request response: ", responseData.Message)
-    return nil
+    return responseData, nil
 }
 
 func (c *Client) ServiceStatusRequest(supervisorName string) (map[string]*core.SupervisorStatus, error) {

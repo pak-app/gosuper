@@ -1,7 +1,3 @@
-/*
-Copyright © 2026 NAME HERE <EMAIL ADDRESS>
-
-*/
 package main
 
 import (
@@ -9,6 +5,7 @@ import (
 	"github.com/pak-app/gosuper/internal/logging"
 )
 
+// main function process
 func main() {
 	logging.Init("log/gosuper.log")
 

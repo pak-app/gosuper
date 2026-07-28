@@ -4,13 +4,12 @@ import (
 	"log"
 
 	"github.com/pak-app/gosuper/internal/client"
-
 	"github.com/spf13/cobra"
 )
 
-// daemonStatusCmd represents the daemonStatus command
-var daemonStatusCmd = &cobra.Command{
-	Use:   "status",
+// startServiceCmd represents the startService command
+var startServiceCmd = &cobra.Command{
+	Use:   "start",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -26,20 +25,24 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		c.DaemonStatusRequest()
+		_, err = c.ServiceStartRequest(appConfig)
+
+		if err != nil {
+			log.Println(err)
+		}
 	},
 }
 
 func init() {
-	daemonCmd.AddCommand(daemonStatusCmd)
+	supervisorCmd.AddCommand(startServiceCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// daemonStatusCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// startServiceCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// daemonStatusCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// startServiceCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
