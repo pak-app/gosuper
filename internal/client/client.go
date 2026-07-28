@@ -100,9 +100,13 @@ func (c *Client) DaemonStatusRequest() (*Daemon, error) {
 	}
 
 	res, err := c.httpClient.Do(req)
+	
+	if err != nil {
+		return nil, fmt.Errorf("daemon is not running.")
+	}
 
 	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("daemon is dead")
+		return nil, fmt.Errorf("daemon is not running.")
 	}
 	defer res.Body.Close()
 

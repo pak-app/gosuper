@@ -1,8 +1,12 @@
+/*
+Copyright © 2026 NAME HERE <EMAIL ADDRESS>
+
+*/
 package cmd
 
 import (
 	"log"
-
+	
 	"github.com/pak-app/gosuper/internal/client"
 
 	"github.com/spf13/cobra"
@@ -26,7 +30,18 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		c.DaemonStatusRequest()
+		deamon, err := c.DaemonStatusRequest()
+
+		if err != nil {
+			log.Printf("Error: %s\n", err.Error())
+		} else {
+			log.Printf(`
+Deamon is running:
+Uptime: %d
+Start Time: %s
+			`, deamon.UpTime, deamon.StartDate)
+		}
+
 	},
 }
 
