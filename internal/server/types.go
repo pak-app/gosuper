@@ -15,6 +15,7 @@ type DaemonServerInterface interface {
 	RemoveSupervisor(string)
 	Status() DaemonServerStatus
 	setState(DaemonServerState)
+	setStartedAt()
 }
 
 type DaemonServerState string
@@ -29,7 +30,7 @@ const (
 type DaemonServer struct {
 	mu          sync.RWMutex
 	Supervisors map[string]core.SupervisorInterface
-	StartedAt   time.Time
+	StartedAt   int64
 	State       DaemonServerState
 }
 
@@ -103,11 +104,15 @@ func (ds *DaemonServer) RemoveSupervisor(name string) {
 func (ds *DaemonServer) Status() DaemonServerStatus {
 	return DaemonServerStatus{
 		SupervisorsCounts: len(ds.Supervisors),
-		StartedAt:         ds.StartedAt.UnixMilli(),
+		StartedAt:         ds.StartedAt,
 		State:             ds.State,
 	}
 }
 
 func (ds *DaemonServer) setState(state DaemonServerState) {
 	ds.State = state
+}
+
+func (ds *DaemonServer) setStartedAt() {
+	ds.StartedAt = time.Now().UnixMilli()
 }

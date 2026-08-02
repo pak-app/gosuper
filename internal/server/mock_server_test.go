@@ -65,3 +65,7 @@ func (m *MockDaemonServer) Status() DaemonServerStatus {
 func (m *MockDaemonServer) setState(state DaemonServerState) {
 	m.Called(state)
 }
+
+func (m *MockDaemonServer) setStartedAt() {
+	m.Called()
+}

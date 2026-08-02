@@ -4,13 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/pak-app/gosuper/internal/config"
+	"github.com/pak-app/gosuper/internal/core"
 	"net/http"
 	"os"
 	"time"
-
-	"github.com/pak-app/gosuper/internal/config"
-	"github.com/pak-app/gosuper/internal/core"
 )
 
 func gracefulShutdown() {
@@ -24,7 +22,9 @@ func gracefulShutdown() {
 	defer cancel()
 
 	if err := Server.Shutdown(ctx); err != nil {
-		log.Printf("HTTP server Shutdown: %v", err)
+		serverLogger.Printf("HTTP server Shutdown: %v", err)
+	} else {
+		serverLogger.Println("Something went wrong")
 	}
 }
 
@@ -33,7 +33,7 @@ func daemonStopController(w http.ResponseWriter, r *http.Request) {
 
 	if err := os.Remove(SocketPath); err != nil && !os.IsNotExist(err) {
 		// If it's an error other than "file doesn't exist", something is wrong.
-		log.Printf("Warning: could not remove existing socket: %v", err)
+		serverLogger.Printf("Warning: could not remove existing socket: %v", err)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{"status": "daemon shutdowned"}`))
@@ -85,7 +85,7 @@ func serviceStatusController(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytes, err := json.Marshal(supervisors)
 	if err != nil {
-		log.Println("Error:", err)
+		serverLogger.Println("Error:", err)
 		return
 	}
 

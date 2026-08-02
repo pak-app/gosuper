@@ -8,7 +8,7 @@ import (
 	"github.com/pak-app/gosuper/internal/config"
 	"github.com/pak-app/gosuper/internal/core"
 	"github.com/pak-app/gosuper/internal/types"
-	"log"
+	"github.com/pak-app/gosuper/internal/server"
 	"net"
 	"net/http"
 	"net/url"
@@ -86,12 +86,13 @@ func (c *Client) StopDaemonRequest() error {
 	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to stop daemon")
 	}
+
 	defer res.Body.Close()
 
 	return nil
 }
 
-func (c *Client) DaemonStatusRequest() (*Daemon, error) {
+func (c *Client) DaemonStatusRequest() (*server.DaemonServerStatus, error) {
 
 	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/daemon/status", nil)
 
@@ -110,7 +111,7 @@ func (c *Client) DaemonStatusRequest() (*Daemon, error) {
 	}
 	defer res.Body.Close()
 
-	var result Daemon
+	var result server.DaemonServerStatus
 
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("daemon is dead")
@@ -190,7 +191,6 @@ func (c *Client) ServiceStopRequest(supervisorName string) (types.SimpleResponse
         return types.SimpleResponse{}, fmt.Errorf("failed to decode response: %w", err)
     }
 
-    log.Println("Stop request response: ", responseData.Message)
     return responseData, nil
 }
 
