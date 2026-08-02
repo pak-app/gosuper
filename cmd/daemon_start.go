@@ -22,8 +22,10 @@ to quickly create a Cobra application.`,
 		log.Println("Starting Gosuper Daemon...")
 
 		exePath := "./gosuper"
+
 		// Create a command that runs the hidden "serve" subcommand
 		bgCmd := exec.Command(exePath, "daemon", "serve")
+		// Setup logging for daemon server
 
 		// Detach the process from the terminal (Unix-like systems)
 		bgCmd.SysProcAttr = &syscall.SysProcAttr{

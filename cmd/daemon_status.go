@@ -30,16 +30,12 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		deamon, err := c.DaemonStatusRequest()
+		daemon, err := c.DaemonStatusRequest()
 
 		if err != nil {
 			log.Printf("Error: %s\n", err.Error())
 		} else {
-			log.Printf(`
-Deamon is running:
-Uptime: %d
-Start Time: %s
-			`, deamon.UpTime, deamon.StartDate)
+			log.Printf("Daemon is running: Status: %s Number of Supervisors: %d Started At: %s", daemon.State, daemon.SupervisorsCounts, unixToDateString(daemon.StartedAt))
 		}
 
 	},
